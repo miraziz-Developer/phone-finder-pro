@@ -2,7 +2,7 @@
 
 Production-ready Telegram bot + REST API for smartphone recommendations, catalog management, and marketplace analytics.
 
-[![CI](https://github.com/your-org/phone-marketplace-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/phone-marketplace-bot/actions/workflows/ci.yml)
+[![CI](https://github.com/miraziz-Developer/phone-finder-pro/actions/workflows/ci.yml/badge.svg)](https://github.com/miraziz-Developer/phone-finder-pro/actions/workflows/ci.yml)
 [![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
