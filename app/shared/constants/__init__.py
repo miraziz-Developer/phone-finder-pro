@@ -14,3 +14,9 @@ def get_comparison_max() -> int:
     from app.core.config import get_settings
 
     return get_settings().comparison_max_phones
+
+
+def get_max_search_results() -> int:
+    from app.core.config import get_settings
+
+    return get_settings().pagination_max_page_size

@@ -9,9 +9,9 @@ from app.application.handlers import SearchPhonesHandler
 from app.application.queries import SearchPhonesQuery
 from app.core.database.unit_of_work import UnitOfWork
 from app.core.utils.formatting import format_currency
-from app.presentation.bot.keyboards import main_menu_keyboard, pagination_inline
+from app.presentation.bot.keyboards import main_menu_keyboard
 from app.presentation.bot.states import FilterStates
-from app.shared.constants import MESSAGE_SEPARATOR, get_page_size
+from app.shared.constants import MESSAGE_SEPARATOR, get_max_search_results
 from app.shared.enums import PhoneSortOrder
 
 router = Router(name="search")
@@ -29,7 +29,8 @@ async def cmd_advanced_search(message: Message, state: FSMContext) -> None:
         "<b>By price:</b> <code>price:300-600</code>\n"
         "<b>By RAM:</b> <code>ram:8</code>\n"
         "<b>By brand:</b> <code>brand:samsung</code>\n"
-        "<b>Combined:</b> <code>brand:apple price:500-1000 ram:8</code>",
+        "<b>Combined:</b> <code>brand:apple price:500-1000 ram:8</code>\n\n"
+        "<i>Results sorted by price (low → high).</i>",
         parse_mode="HTML",
     )
 
@@ -97,7 +98,7 @@ async def process_advanced_search(message: Message, state: FSMContext, uow: Unit
             min_ram_gb=filters.get("min_ram_gb"),
             query=filters.get("query"),
             sort=PhoneSortOrder.PRICE_ASC,
-            limit=get_page_size(),
+            limit=get_max_search_results(),
         )
     )
 
@@ -110,7 +111,11 @@ async def process_advanced_search(message: Message, state: FSMContext, uow: Unit
         )
         return
 
-    lines = ["🔎 <b>Search Results</b>", MESSAGE_SEPARATOR]
+    lines = [
+        f"🔎 <b>Search Results</b> — {len(phones)} found",
+        "<i>Cheapest first</i>",
+        MESSAGE_SEPARATOR,
+    ]
     for i, phone in enumerate(phones, 1):
         discount = ""
         if (
@@ -125,11 +130,8 @@ async def process_advanced_search(message: Message, state: FSMContext, uow: Unit
             f"{phone.ram_gb}GB · {phone.cpu[:20]}"
         )
 
-    total_pages = max(1, (len(phones) + get_page_size() - 1) // get_page_size())
     await message.answer(
         "\n".join(lines),
         parse_mode="HTML",
-        reply_markup=pagination_inline("search", 0, total_pages)
-        if total_pages > 1
-        else main_menu_keyboard(),
+        reply_markup=main_menu_keyboard(),
     )
