@@ -27,7 +27,7 @@ async def cmd_advanced_search(message: Message, state: FSMContext) -> None:
         "Enter search query or filters:\n\n"
         "<b>By name:</b> <code>Galaxy</code>\n"
         "<b>By price:</b> <code>price:300-600</code>\n"
-        "<b>By RAM:</b> <code>ram:8</code>\n"
+        "<b>By RAM:</b> <code>ram:4</code> (exact) or <code>ram:8+</code> (8GB+)\n"
         "<b>By brand:</b> <code>brand:samsung</code>\n"
         "<b>Combined:</b> <code>brand:apple price:500-1000 ram:8</code>\n\n"
         "<i>Results sorted by price (low → high).</i>",
@@ -43,6 +43,7 @@ def _parse_filters(text: str) -> dict:
         "min_price": None,
         "max_price": None,
         "min_ram_gb": None,
+        "ram_gb": None,
     }
     parts = text.split()
     plain_words = []
@@ -57,7 +58,11 @@ def _parse_filters(text: str) -> dict:
             else:
                 filters["max_price"] = float(price_part)
         elif part.startswith("ram:"):
-            filters["min_ram_gb"] = int(part.replace("ram:", ""))
+            ram_part = part.replace("ram:", "")
+            if ram_part.endswith("+"):
+                filters["min_ram_gb"] = int(ram_part[:-1])
+            else:
+                filters["ram_gb"] = int(ram_part)
         elif part.startswith("brand:"):
             filters["brand_slug"] = part.replace("brand:", "").lower()
         else:
@@ -96,6 +101,7 @@ async def process_advanced_search(message: Message, state: FSMContext, uow: Unit
             min_price=filters.get("min_price"),
             max_price=filters.get("max_price"),
             min_ram_gb=filters.get("min_ram_gb"),
+            ram_gb=filters.get("ram_gb"),
             query=filters.get("query"),
             sort=PhoneSortOrder.PRICE_ASC,
             limit=get_max_search_results(),

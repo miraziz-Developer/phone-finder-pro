@@ -45,6 +45,7 @@ class PhoneRepository(IPhoneRepository):
         min_price: Decimal | None = None,
         max_price: Decimal | None = None,
         min_ram_gb: int | None = None,
+        ram_gb: int | None = None,
         query: str | None = None,
         sort: PhoneSortOrder = PhoneSortOrder.SCORE,
         offset: int = 0,
@@ -60,6 +61,8 @@ class PhoneRepository(IPhoneRepository):
             stmt = stmt.where(PhoneModel.price <= max_price)
         if min_ram_gb is not None:
             stmt = stmt.where(PhoneModel.ram_gb >= min_ram_gb)
+        if ram_gb is not None:
+            stmt = stmt.where(PhoneModel.ram_gb == ram_gb)
         if query:
             pattern = f"%{query}%"
             stmt = stmt.where(

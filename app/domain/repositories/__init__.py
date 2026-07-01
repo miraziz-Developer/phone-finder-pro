@@ -50,6 +50,7 @@ class IPhoneRepository(ABC):
         min_price: Decimal | None = None,
         max_price: Decimal | None = None,
         min_ram_gb: int | None = None,
+        ram_gb: int | None = None,
         query: str | None = None,
         sort: PhoneSortOrder = PhoneSortOrder.SCORE,
         offset: int = 0,

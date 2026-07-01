@@ -183,6 +183,7 @@ class SearchPhonesHandler:
             min_price=Decimal(str(query.min_price)) if query.min_price else None,
             max_price=Decimal(str(query.max_price)) if query.max_price else None,
             min_ram_gb=query.min_ram_gb,
+            ram_gb=query.ram_gb,
             query=query.query,
             sort=query.sort,
             offset=query.offset,

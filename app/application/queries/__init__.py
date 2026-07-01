@@ -14,6 +14,7 @@ class SearchPhonesQuery:
     min_price: float | None = None
     max_price: float | None = None
     min_ram_gb: int | None = None
+    ram_gb: int | None = None
     query: str | None = None
     sort: PhoneSortOrder = PhoneSortOrder.SCORE
     offset: int = 0
