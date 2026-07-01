@@ -10,7 +10,7 @@ from app.application.queries import SearchPhonesQuery
 from app.core.database.unit_of_work import UnitOfWork
 from app.core.utils.formatting import format_currency
 from app.presentation.bot.keyboards import main_menu_keyboard, pagination_inline
-from app.presentation.bot.states import SearchStates
+from app.presentation.bot.states import FilterStates
 from app.shared.constants import MESSAGE_SEPARATOR, get_page_size
 from app.shared.enums import PhoneSortOrder
 
@@ -20,7 +20,7 @@ router = Router(name="search")
 @router.message(Command("filter"))
 async def cmd_advanced_search(message: Message, state: FSMContext) -> None:
     """Start advanced filter search."""
-    await state.set_state(SearchStates.query)
+    await state.set_state(FilterStates.query)
     await message.answer(
         "🔎 <b>Smart Search</b>\n"
         f"{MESSAGE_SEPARATOR}\n"
@@ -67,7 +67,7 @@ def _parse_filters(text: str) -> dict:
     return filters
 
 
-@router.message(SearchStates.query)
+@router.message(FilterStates.query)
 async def process_advanced_search(message: Message, state: FSMContext, uow: UnitOfWork) -> None:
     """Execute advanced search with parsed filters."""
     if not message.text:
@@ -77,8 +77,16 @@ async def process_advanced_search(message: Message, state: FSMContext, uow: Unit
     brand_id = None
     if filters.get("brand_slug"):
         brand = await uow.brands.get_by_slug(filters["brand_slug"])
-        if brand:
-            brand_id = brand.id
+        if brand is None:
+            await state.clear()
+            await message.answer(
+                f"Unknown brand <b>{filters['brand_slug']}</b>. "
+                "Try: apple, samsung, google, xiaomi, nothing, oneplus, motorola",
+                parse_mode="HTML",
+                reply_markup=main_menu_keyboard(),
+            )
+            return
+        brand_id = brand.id
 
     handler = SearchPhonesHandler(uow)
     phones = await handler.handle(

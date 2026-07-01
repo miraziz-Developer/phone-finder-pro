@@ -21,6 +21,10 @@ class SearchStates(StatesGroup):
     query = State()
 
 
+class FilterStates(StatesGroup):
+    query = State()
+
+
 class CompareStates(StatesGroup):
     selecting = State()
 
