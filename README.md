@@ -1,49 +1,134 @@
-# Phone Finder Pro — Mini Marketplace Backend
+# Phone Finder Pro
 
-Production-ready Telegram bot + REST API for smartphone recommendations, catalog management, and marketplace analytics.
+Telegram bot and REST API for smartphone recommendations, catalog management, and marketplace analytics.
+
+**Repository:** [github.com/miraziz-Developer/phone-finder-pro](https://github.com/miraziz-Developer/phone-finder-pro)
 
 [![CI](https://github.com/miraziz-Developer/phone-finder-pro/actions/workflows/ci.yml/badge.svg)](https://github.com/miraziz-Developer/phone-finder-pro/actions/workflows/ci.yml)
 [![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Overview
+## Tech Stack
 
-A full **mini marketplace backend** delivered via Telegram and REST API:
+| Layer | Technology |
+|-------|------------|
+| Language | Python 3.13 |
+| Bot | Aiogram 3 (FSM, Redis storage) |
+| API | FastAPI + JWT |
+| Database | PostgreSQL 16, SQLAlchemy 2.0 async, Alembic |
+| Cache / sessions | Redis 7 |
+| Testing | pytest, pytest-asyncio |
+| Tooling | Poetry, Ruff, Docker |
 
-| Module | Features |
-|--------|----------|
-| 👤 **User Panel** | Recommendations, search, compare, favorites, history |
-| 🛠 **Admin Panel** | CRUD, import CSV/Excel/JSON, export, analytics — all in Telegram |
-| 🤖 **Recommendation Engine** | Config-driven weighted scoring (not random, not OpenAI) |
-| ⚖️ **Compare** | Side-by-side with category winners |
-| 📂 **Import/Export** | CSV, Excel, JSON with validation & duplicate detection |
-| 💵 **Pricing** | USD only (`$199`, `$799`, `$999`) |
-| 📷 **Images** | Multiple image URLs, auto-display primary image |
-| 💲 **Price History** | Track every price change |
-| 🏷 **Discounts** | Original price + discount percent |
-| 🐳 **Docker** | Bot + API + Postgres + Redis |
-| 📚 **Swagger API** | FastAPI admin API with JWT auth |
+## Features
+
+| Area | Capabilities |
+|------|--------------|
+| User bot | 11-step recommendation flow, search, filters, compare, favorites, history |
+| Admin bot | CRUD, import CSV/Excel/JSON, export, dashboard stats |
+| Engine | Config-driven weighted scoring (budget, performance, camera, battery, …) |
+| API | JWT-protected admin endpoints, Swagger at `/docs` |
+| Data | 15 seeded phones, images, price history, discounts |
 
 ## Architecture
 
+Clean Architecture with explicit layers:
+
 ```
 app/
-├── core/              # Config, logging, DB, security
-├── domain/            # Entities, scoring engine, repository ports
-├── application/       # CQRS handlers, import/export, analytics, compare
-├── infrastructure/    # PostgreSQL, Redis, repositories
-├── presentation/
-│   ├── bot/           # Telegram UX (user + admin panels)
-│   └── api/           # FastAPI admin REST API
-└── shared/            # Enums, constants, exceptions
+├── core/           # config, logging, database, security
+├── domain/         # entities, value objects, scoring engine, repository ports
+├── application/    # commands, queries, handlers, services, validators
+├── infrastructure/ # PostgreSQL models/repos, Redis client
+├── presentation/   # Telegram routers, FastAPI app
+└── shared/         # enums, constants, exceptions
 ```
 
-## Recommendation Engine
+Dependency rule: `presentation → application → domain ← infrastructure`.
 
-Config-driven weights (via `.env`):
+## Quick Start (Docker)
 
-| Criterion | Default Weight |
-|-----------|---------------|
+```bash
+git clone https://github.com/miraziz-Developer/phone-finder-pro.git
+cd phone-finder-pro
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+BOT_TOKEN=<from @BotFather>
+ADMIN_IDS=<your Telegram user ID from @userinfobot>
+```
+
+```bash
+docker-compose up --build
+```
+
+| Service | URL / role |
+|---------|------------|
+| Bot | Telegram polling |
+| API | http://localhost:8000/docs |
+| PostgreSQL | port 5432 |
+| Redis | port 6379 |
+| migrate | Alembic + seed (15 phones) |
+
+## Local Development
+
+```bash
+poetry install
+docker-compose up postgres redis -d   # or local Postgres + Redis
+cp .env.example .env
+# set POSTGRES_HOST=localhost, REDIS_HOST=localhost
+
+poetry run alembic upgrade head
+poetry run python scripts/seed.py
+poetry run python -m app.main       # bot
+poetry run python -m app.api_main   # API
+```
+
+Use `make help` for common commands.
+
+## For Reviewers (5-minute demo)
+
+1. **Clone & run** — `docker-compose up --build` (set `BOT_TOKEN` + `ADMIN_IDS` in `.env`).
+2. **User flow** — `/start` → `/recommend` → complete wizard → see top 5 with scores and photos.
+3. **Search** — `/filter brand:samsung price:400-900` or `/compare`.
+4. **Admin** — `/stats`, `/phones`, `/export_json` (requires your ID in `ADMIN_IDS`).
+5. **API** — open `/docs`, authenticate with `admin` / value from `API_ADMIN_PASSWORD`, call `GET /api/v1/stats`.
+6. **Tests** — `make test` (29 tests: engine, validators, import/export, compare, API).
+
+### Seed catalog
+
+Pre-loaded data: **7 brands**, **3 categories**, **15 phones** with specs, images, and price history.
+
+```bash
+poetry run python scripts/seed.py          # first run only
+poetry run python scripts/seed.py --reset  # wipe catalog & reseed
+```
+
+## Bot Commands
+
+**User:** `/start` `/recommend` `/search` `/filter` `/compare` `/favorites` `/popular` `/newest` `/history`
+
+**Admin** (Telegram ID in `ADMIN_IDS`): `/admin` `/stats` `/phones` `/add_phone` `/delete_phone` `/update_price` `/import_json` `/import_csv` `/import_excel` `/export_json` `/export_csv`
+
+## REST API
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/token \
+  -d "username=admin&password=admin_secret_change_me"
+
+curl -H "Authorization: Bearer <token>" http://localhost:8000/api/v1/phones
+curl -H "Authorization: Bearer <token>" http://localhost:8000/api/v1/stats
+```
+
+## Recommendation Weights
+
+Configured via `.env` (defaults sum to 1.0):
+
+| Criterion | Weight |
+|-----------|--------|
 | Budget | 30% |
 | Performance | 20% |
 | Camera | 15% |
@@ -53,92 +138,11 @@ Config-driven weights (via `.env`):
 | Brand | 5% |
 | Features | 5% |
 
-Returns **Top 5** with match score (e.g. `96%`) and explanation.
-
-## Quick Start
-
-```bash
-cp .env.example .env
-# Set BOT_TOKEN and ADMIN_IDS
-
-docker compose up --build
-```
-
-Services started:
-- **bot** — Telegram bot (polling)
-- **api** — FastAPI on `http://localhost:8000` (Swagger at `/docs`)
-- **postgres** — PostgreSQL 16
-- **redis** — Redis 7
-- **migrate** — Alembic + seed data
-
-## Admin Panel (Telegram)
-
-| Command | Action |
-|---------|--------|
-| `/admin` | Full admin menu |
-| `/stats` | Dashboard analytics |
-| `/phones` | List catalog |
-| `/add_phone` | Add phone wizard |
-| `/delete_phone <id>` | Soft-delete |
-| `/update_price` | Update USD price |
-| `/add_image` | Add image URL |
-| `/import_json` | Import JSON file |
-| `/import_csv` | Import CSV file |
-| `/import_excel` | Import Excel file |
-| `/export_json` | Export JSON |
-| `/export_csv` | Export CSV |
-
-## User Commands
-
-| Command | Action |
-|---------|--------|
-| `/start` | Main menu |
-| `/recommend` | 11-step recommendation flow |
-| `/search` | Text search |
-| `/filter` | Advanced filters (`brand:samsung price:300-600`) |
-| `/compare` | Compare 2 phones |
-| `/favorites` | Saved phones |
-| `/popular` | Most recommended |
-| `/newest` | New arrivals |
-| `/history` | Past recommendations |
-
-## REST API
-
-```bash
-# Get JWT token
-curl -X POST http://localhost:8000/api/v1/auth/token \
-  -d "username=admin&password=admin_secret_change_me"
-
-# List phones
-curl -H "Authorization: Bearer <token>" http://localhost:8000/api/v1/phones
-
-# Dashboard stats
-curl -H "Authorization: Bearer <token>" http://localhost:8000/api/v1/stats
-```
-
-Swagger UI: `http://localhost:8000/docs`
-
-## Phone Data Fields
-
-Every phone supports: Model, Brand, Price (USD), Processor, GPU, RAM, Storage, Battery, Charging, Wireless Charging, Display, Refresh Rate, Resolution, Camera, Front Camera, OS Version, Release Date, Waterproof, 5G, NFC, eSIM, Fingerprint, Weight, Dimensions, SIM, Bluetooth, WiFi, USB, Stereo Speakers, Colors, Images, Description, Advantages, Disadvantages.
-
 ## Configuration
 
-All settings via environment variables — see [`.env.example`](.env.example).
+All settings are environment-driven — see [`.env.example`](.env.example).
 
-Key groups: Telegram, PostgreSQL, Redis, JWT, scoring weights, pagination, import limits, budget range.
-
-## Development
-
-```bash
-poetry install
-docker compose up postgres redis -d
-poetry run alembic upgrade head
-poetry run python scripts/seed.py
-poetry run python -m app.main      # Bot
-poetry run python -m app.api_main  # API
-poetry run pytest
-```
+**Never commit `.env`** — it contains secrets (`BOT_TOKEN`, `JWT_SECRET_KEY`, DB passwords).
 
 ## License
 

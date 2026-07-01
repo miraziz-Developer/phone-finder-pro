@@ -1,5 +1,3 @@
-"""Application command and query handlers."""
-
 from decimal import Decimal
 
 from app.application.commands import (
@@ -27,13 +25,10 @@ logger = get_logger(__name__)
 
 
 class RegisterUserHandler:
-    """Handle user registration or profile update."""
-
     def __init__(self, uow: UnitOfWork) -> None:
         self._uow = uow
 
     async def handle(self, command: RegisterUserCommand) -> User:
-        """Register a new user or update existing profile."""
         existing = await self._uow.users.get_by_telegram_id(command.telegram_id)
         if existing:
             existing.username = command.username
@@ -55,8 +50,6 @@ class RegisterUserHandler:
 
 
 class CreateRecommendationHandler:
-    """Handle recommendation generation workflow."""
-
     def __init__(
         self,
         uow: UnitOfWork,
@@ -66,7 +59,6 @@ class CreateRecommendationHandler:
         self._engine = engine or RecommendationEngine()
 
     async def handle(self, command: CreateRecommendationCommand) -> RecommendationResultDTO:
-        """Generate recommendations based on user preferences."""
         req = command.request
 
         user = await self._uow.users.get_by_telegram_id(req.telegram_id)
@@ -157,13 +149,10 @@ class CreateRecommendationHandler:
 
 
 class ToggleFavoriteHandler:
-    """Handle adding/removing favorites."""
-
     def __init__(self, uow: UnitOfWork) -> None:
         self._uow = uow
 
     async def handle(self, command: ToggleFavoriteCommand) -> bool:
-        """Toggle favorite status. Returns True if now favorited."""
         is_fav = await self._uow.favorites.is_favorite(command.user_id, command.phone_id)
         if is_fav:
             await self._uow.favorites.remove(command.user_id, command.phone_id)
@@ -173,8 +162,6 @@ class ToggleFavoriteHandler:
 
 
 class GetPhoneByIdHandler:
-    """Handle phone detail query."""
-
     def __init__(self, uow: UnitOfWork) -> None:
         self._uow = uow
 
@@ -187,8 +174,6 @@ class GetPhoneByIdHandler:
 
 
 class SearchPhonesHandler:
-    """Handle phone search query."""
-
     def __init__(self, uow: UnitOfWork) -> None:
         self._uow = uow
 

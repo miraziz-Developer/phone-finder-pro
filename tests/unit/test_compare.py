@@ -35,10 +35,12 @@ def _phone(name: str, price: int, **scores: float) -> Phone:
 
 def test_compare_two_phones() -> None:
     service = PhoneCompareService()
-    result = service.compare([
-        _phone("Phone A", 799, perf=92, camera=90),
-        _phone("Phone B", 499, perf=70, camera=75),
-    ])
+    result = service.compare(
+        [
+            _phone("Phone A", 799, perf=92, camera=90),
+            _phone("Phone B", 499, perf=70, camera=75),
+        ]
+    )
     assert result.overall_winner_index in (0, 1)
     assert "Phone A" in service.format_telegram(result)
 

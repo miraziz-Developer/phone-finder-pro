@@ -2,7 +2,7 @@
 name = "phone-recommendation-bot"
 version = "1.0.0"
 description = "Production-ready Telegram bot for smartphone recommendations"
-authors = ["Phone Recommendation Team <team@example.com>"]
+authors = ["Miraziz Erkinov <miraziz-Developer@users.noreply.github.com>"]
 readme = "README.md"
 license = "MIT"
 packages = [{ include = "app" }]
