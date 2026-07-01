@@ -22,7 +22,7 @@ from app.application.queries import (
 )
 from app.core.database.unit_of_work import UnitOfWork
 from app.core.utils.formatting import format_currency
-from app.presentation.bot.keyboards import main_menu_keyboard, phone_actions_inline
+from app.presentation.bot.keyboards import main_menu_keyboard, phone_actions_inline, phone_list_inline
 from app.presentation.bot.states import SearchStates
 from app.shared.constants import MESSAGE_SEPARATOR, get_page_size
 from app.shared.enums import PhoneSortOrder
@@ -88,7 +88,7 @@ async def process_search(message: Message, state: FSMContext, uow: UnitOfWork) -
     for i, phone in enumerate(phones, 1):
         lines.append(_format_phone_list_item(phone, i))
 
-    await message.answer("\n".join(lines), parse_mode="HTML", reply_markup=main_menu_keyboard())
+    await message.answer("\n".join(lines), parse_mode="HTML", reply_markup=phone_list_inline(phones))
 
 
 @router.message(Command("favorites"))
@@ -114,7 +114,7 @@ async def cmd_favorites(message: Message, uow: UnitOfWork) -> None:
     for i, phone in enumerate(favorites, 1):
         lines.append(_format_phone_list_item(phone, i))
 
-    await message.answer("\n".join(lines), parse_mode="HTML", reply_markup=main_menu_keyboard())
+    await message.answer("\n".join(lines), parse_mode="HTML", reply_markup=phone_list_inline(favorites))
 
 
 @router.message(Command("popular"))
@@ -130,7 +130,7 @@ async def cmd_popular(message: Message, uow: UnitOfWork) -> None:
     for i, phone in enumerate(phones, 1):
         lines.append(_format_phone_list_item(phone, i))
 
-    await message.answer("\n".join(lines), parse_mode="HTML", reply_markup=main_menu_keyboard())
+    await message.answer("\n".join(lines), parse_mode="HTML", reply_markup=phone_list_inline(phones))
 
 
 @router.message(Command("newest"))
@@ -146,7 +146,7 @@ async def cmd_newest(message: Message, uow: UnitOfWork) -> None:
     for i, phone in enumerate(phones, 1):
         lines.append(_format_phone_list_item(phone, i))
 
-    await message.answer("\n".join(lines), parse_mode="HTML", reply_markup=main_menu_keyboard())
+    await message.answer("\n".join(lines), parse_mode="HTML", reply_markup=phone_list_inline(phones))
 
 
 @router.message(Command("history"))
@@ -187,7 +187,7 @@ async def cmd_browse(message: Message, uow: UnitOfWork) -> None:
     for i, phone in enumerate(phones, 1):
         lines.append(_format_phone_list_item(phone, i))
 
-    await message.answer("\n".join(lines), parse_mode="HTML", reply_markup=main_menu_keyboard())
+    await message.answer("\n".join(lines), parse_mode="HTML", reply_markup=phone_list_inline(phones))
 
 
 @router.callback_query(F.data.startswith("phone:"))

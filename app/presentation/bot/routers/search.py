@@ -9,7 +9,7 @@ from app.application.handlers import SearchPhonesHandler
 from app.application.queries import SearchPhonesQuery
 from app.core.database.unit_of_work import UnitOfWork
 from app.core.utils.formatting import format_currency
-from app.presentation.bot.keyboards import main_menu_keyboard
+from app.presentation.bot.keyboards import main_menu_keyboard, phone_list_inline
 from app.presentation.bot.states import FilterStates
 from app.shared.constants import MESSAGE_SEPARATOR, get_max_search_results
 from app.shared.enums import PhoneSortOrder
@@ -133,5 +133,5 @@ async def process_advanced_search(message: Message, state: FSMContext, uow: Unit
     await message.answer(
         "\n".join(lines),
         parse_mode="HTML",
-        reply_markup=main_menu_keyboard(),
+        reply_markup=phone_list_inline(phones),
     )

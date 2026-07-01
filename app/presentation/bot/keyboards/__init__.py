@@ -108,6 +108,40 @@ def confirm_keyboard() -> ReplyKeyboardMarkup:
     )
 
 
+def phone_list_inline(phones) -> InlineKeyboardMarkup:
+    """Open phone detail cards from a search/browse list."""
+    rows = []
+    for phone in phones:
+        if phone.id is not None:
+            rows.append(
+                [
+                    InlineKeyboardButton(
+                        text=f"📱 {phone.name}",
+                        callback_data=f"phone:{phone.id}",
+                    )
+                ]
+            )
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def compare_picker_inline(phones, *, exclude_id: int | None = None) -> InlineKeyboardMarkup:
+    """Pick phones for side-by-side comparison."""
+    rows = []
+    for phone in phones:
+        if phone.id is None or phone.id == exclude_id:
+            continue
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=f"⚖️ {phone.name}",
+                    callback_data=f"cmp:{phone.id}",
+                )
+            ]
+        )
+    rows.append([InlineKeyboardButton(text="❌ Cancel", callback_data="cmp:cancel")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
 def phone_actions_inline(phone_id: int, is_favorite: bool = False) -> InlineKeyboardMarkup:
     """Inline actions for a phone card."""
     fav_text = "💔 Remove Favorite" if is_favorite else "⭐ Add to Favorites"
@@ -115,7 +149,7 @@ def phone_actions_inline(phone_id: int, is_favorite: bool = False) -> InlineKeyb
         inline_keyboard=[
             [
                 InlineKeyboardButton(text=fav_text, callback_data=f"fav:{phone_id}"),
-                InlineKeyboardButton(text="📊 Compare", callback_data=f"compare:{phone_id}"),
+                InlineKeyboardButton(text="📊 Compare", callback_data=f"cmp:{phone_id}"),
             ],
             [InlineKeyboardButton(text="🔍 View Details", callback_data=f"phone:{phone_id}")],
         ]
