@@ -62,7 +62,13 @@ class PhoneRepository(IPhoneRepository):
             stmt = stmt.where(PhoneModel.ram_gb >= min_ram_gb)
         if query:
             pattern = f"%{query}%"
-            stmt = stmt.where(or_(PhoneModel.name.ilike(pattern), PhoneModel.cpu.ilike(pattern)))
+            stmt = stmt.where(
+                or_(
+                    PhoneModel.name.ilike(pattern),
+                    PhoneModel.slug.ilike(pattern.replace(" ", "-")),
+                    PhoneModel.cpu.ilike(pattern),
+                )
+            )
 
         order_map = {
             PhoneSortOrder.PRICE_ASC: PhoneModel.price.asc(),

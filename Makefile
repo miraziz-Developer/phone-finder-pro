@@ -35,6 +35,9 @@ seed:
 seed-reset:
 	poetry run python scripts/seed.py --reset
 
+seed-sync:
+	poetry run python scripts/seed.py --sync
+
 bot:
 	poetry run python -m app.main
 
