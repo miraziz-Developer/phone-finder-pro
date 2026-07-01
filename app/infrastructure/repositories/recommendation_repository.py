@@ -27,7 +27,7 @@ class RecommendationRepository(IRecommendationRepository):
         )
         self._session.add(model)
         await self._session.flush()
-        return map_recommendation(model)
+        return map_recommendation(model, load_history=False)
 
     async def save_history(
         self, history: list[RecommendationHistory]

@@ -169,21 +169,22 @@ def map_phone(model: PhoneModel, *, load_relations: bool = True) -> Phone:
     return phone
 
 
-def map_recommendation(model: RecommendationModel) -> Recommendation:
-    """Map RecommendationModel to Recommendation entity."""
-    results = []
-    if model.history:
-        for h in model.history:
-            results.append(
-                ScoredPhone(
-                    phone_id=h.phone_id,
-                    phone_name=h.phone.name if h.phone else "Unknown",
-                    brand_name=h.phone.brand.name if h.phone and h.phone.brand else "Unknown",
-                    price=h.phone.price if h.phone else 0,
-                    score=h.score,
-                    reason=h.reason,
+def map_recommendation(model: RecommendationModel, *, load_history: bool = True) -> Recommendation:
+    results: list[ScoredPhone] = []
+    if load_history:
+        history = model.history
+        if history:
+            for h in history:
+                results.append(
+                    ScoredPhone(
+                        phone_id=h.phone_id,
+                        phone_name=h.phone.name if h.phone else "Unknown",
+                        brand_name=h.phone.brand.name if h.phone and h.phone.brand else "Unknown",
+                        price=h.phone.price if h.phone else 0,
+                        score=h.score,
+                        reason=h.reason,
+                    )
                 )
-            )
 
     return Recommendation(
         id=model.id,
